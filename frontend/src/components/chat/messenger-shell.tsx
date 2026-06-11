@@ -30,7 +30,8 @@ export function MessengerShell() {
   const chats = useQuery({
     queryKey: ["chats", token],
     queryFn: () => api.chats(token!),
-    enabled: Boolean(token)
+    enabled: Boolean(token),
+    refetchInterval: 2500
   });
   const friends = useQuery({
     queryKey: ["friends", token],
@@ -40,12 +41,14 @@ export function MessengerShell() {
   const discovery = useQuery({
     queryKey: ["discovery", token],
     queryFn: () => api.discovery(token!),
-    enabled: Boolean(token) && tab === "discover"
+    enabled: Boolean(token) && tab === "discover",
+    refetchInterval: 10000
   });
   const messages = useQuery({
     queryKey: ["messages", token, selectedChatId],
     queryFn: () => api.messages(token!, selectedChatId!),
-    enabled: Boolean(token && selectedChatId)
+    enabled: Boolean(token && selectedChatId),
+    refetchInterval: 2500
   });
 
   const selectedChat = useMemo(
@@ -103,6 +106,7 @@ export function MessengerShell() {
             selectedChatId={selectedChat?.id}
             onSelectChat={setSelectedChatId}
             token={token}
+            me={me.data}
           />
         </aside>
 
@@ -110,6 +114,7 @@ export function MessengerShell() {
           chat={selectedChat}
           messages={messages.data ?? []}
           me={me.data}
+          friends={friends.data ?? []}
           draft={draft}
           setDraft={setDraft}
           send={send}
@@ -142,6 +147,7 @@ function SidebarContent(props: {
   selectedChatId?: string;
   onSelectChat: (id: string) => void;
   token: string | null;
+  me?: User;
 }) {
   if (props.tab === "friends") {
     return <UserList title="Friends" users={props.friends} empty="No friends yet" />;
@@ -172,21 +178,28 @@ function SidebarContent(props: {
       {props.chats.length === 0 ? (
         <p className="p-3 text-sm text-black/55">Create a chat with a friend from the API or discovery flow.</p>
       ) : (
-        props.chats.map((chat, index) => (
-          <button
-            className={`flex w-full items-center gap-3 rounded-md p-3 text-left transition ${
-              props.selectedChatId === chat.id ? "bg-ink text-white" : "hover:bg-black/5"
-            }`}
-            key={chat.id}
-            onClick={() => props.onSelectChat(chat.id)}
-          >
-            <Avatar label={`C${index + 1}`} />
-            <div className="min-w-0">
-              <p className="truncate text-sm font-semibold">Conversation {index + 1}</p>
-              <p className="truncate text-xs opacity-70">{chat.member_ids.length} members</p>
-            </div>
-          </button>
-        ))
+        props.chats.map((chat, index) => {
+          const friend = props.me ? props.friends.find((f) => chat.member_ids.includes(f.id) && f.id !== props.me!.id) : undefined;
+          const title = friend ? friend.display_name : `Conversation ${index + 1}`;
+          const subtitle = friend ? `@${friend.username}` : `${chat.member_ids.length} members`;
+          const avatarLabel = friend ? friend.display_name.slice(0, 2).toUpperCase() : `C${index + 1}`;
+
+          return (
+            <button
+              className={`flex w-full items-center gap-3 rounded-md p-3 text-left transition ${
+                props.selectedChatId === chat.id ? "bg-ink text-white" : "hover:bg-black/5"
+              }`}
+              key={chat.id}
+              onClick={() => props.onSelectChat(chat.id)}
+            >
+              <Avatar label={avatarLabel} />
+              <div className="min-w-0">
+                <p className="truncate text-sm font-semibold">{title}</p>
+                <p className="truncate text-xs opacity-70">{subtitle}</p>
+              </div>
+            </button>
+          );
+        })
       )}
     </div>
   );
@@ -239,16 +252,21 @@ function ConversationPanel(props: {
   chat?: Chat;
   messages: Message[];
   me?: User;
+  friends?: User[];
   draft: string;
   setDraft: (value: string) => void;
   send: (event: FormEvent<HTMLFormElement>) => void;
 }) {
+  const friend = props.chat && props.me && props.friends ? props.friends.find(f => props.chat!.member_ids.includes(f.id) && f.id !== props.me!.id) : undefined;
+  const title = friend ? friend.display_name : (props.chat ? "Conversation" : "No conversation selected");
+  const subtitle = friend ? `@${friend.username}` : (props.chat ? `${props.chat.member_ids.length} members` : "Add friends to begin messaging");
+
   return (
     <section className="grid min-h-[560px] grid-rows-[auto_1fr_auto] bg-paper">
       <div className="flex items-center justify-between border-b border-black/10 bg-white px-4 py-3">
         <div>
-          <h2 className="font-semibold">{props.chat ? "Conversation" : "No conversation selected"}</h2>
-          <p className="text-xs text-black/55">{props.chat ? `${props.chat.member_ids.length} members` : "Add friends to begin messaging"}</p>
+          <h2 className="font-semibold">{title}</h2>
+          <p className="text-xs text-black/55">{subtitle}</p>
         </div>
         <span className="rounded-md bg-moss/10 px-2 py-1 text-xs font-semibold text-moss">encrypted storage</span>
       </div>
