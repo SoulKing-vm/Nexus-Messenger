@@ -56,7 +56,7 @@ class ChatPublic(BaseModel):
 
 class MessageSendRequest(BaseModel):
     chat_id: UUID
-    content: str = Field(min_length=1, max_length=4000)
+    content: str = Field(min_length=1, max_length=7000000)
 
 
 class MessagePublic(BaseModel):

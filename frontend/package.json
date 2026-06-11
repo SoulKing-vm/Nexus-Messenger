@@ -15,7 +15,9 @@
     "next": "15.1.4",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
-    "zustand": "^5.0.2"
+    "zustand": "^5.0.2",
+    "next-themes": "latest",
+    "emoji-picker-react": "latest"
   },
   "devDependencies": {
     "@types/node": "^22.10.2",

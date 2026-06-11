@@ -45,5 +45,22 @@ export const api = {
     request<{ status: string }>("/api/friends/request", {
       method: "POST",
       body: JSON.stringify({ username })
+    }, token),
+  getRequests: (token: string) =>
+    request<{ incoming: { id: string; user: User }[]; outgoing: { id: string; user: User }[] }>("/api/friends/requests", {}, token),
+  acceptRequest: (token: string, username: string) =>
+    request<{ status: string }>("/api/friends/accept", {
+      method: "POST",
+      body: JSON.stringify({ username })
+    }, token),
+  rejectRequest: (token: string, username: string) =>
+    request<{ status: string }>("/api/friends/reject", {
+      method: "POST",
+      body: JSON.stringify({ username })
+    }, token),
+  createChat: (token: string, username: string) =>
+    request<Chat>("/api/chats/create", {
+      method: "POST",
+      body: JSON.stringify({ username })
     }, token)
 };
