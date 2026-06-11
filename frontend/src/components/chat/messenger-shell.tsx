@@ -1,9 +1,10 @@
+/* eslint-disable @next/next/no-img-element */
 "use client";
 
 import { FormEvent, useEffect, useMemo, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { Compass, LogOut, MessageCircle, Search, Send, Settings, UserRoundCheck, UsersRound, Smile, Paperclip, Check, X, Moon, Sun, Monitor, MessageSquare } from "lucide-react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import { useAuthStore } from "@/store/auth";
 import { Chat, Message, User } from "@/types/api";
@@ -397,7 +398,7 @@ function ConversationPanel(props: {
   const title = friend ? friend.display_name : (props.chat ? "Conversation" : "No conversation selected");
   const subtitle = friend ? `@${friend.username}` : (props.chat ? `${props.chat.member_ids.length} members` : "Select a chat to begin messaging");
 
-  const onEmojiClick = (emojiData: any) => {
+  const onEmojiClick = (emojiData: { emoji: string }) => {
     props.setDraft(prev => prev + emojiData.emoji);
   };
 
