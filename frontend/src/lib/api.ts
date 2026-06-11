@@ -62,5 +62,13 @@ export const api = {
     request<Chat>("/api/chats/create", {
       method: "POST",
       body: JSON.stringify({ username })
+    }, token),
+  deleteMessage: (token: string, messageId: string) =>
+    request<{ status: string }>(`/api/messages/${messageId}`, {
+      method: "DELETE"
+    }, token),
+  clearHistory: (token: string, chatId: string) =>
+    request<{ status: string }>(`/api/messages/history/${chatId}`, {
+      method: "DELETE"
     }, token)
 };

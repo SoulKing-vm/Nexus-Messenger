@@ -83,3 +83,24 @@ def mark_read(message_id: UUID, db: Session = Depends(get_db), user: User = Depe
     message.status = "read"
     db.commit()
     return {"status": "read"}
+
+
+@router.delete("/{message_id}")
+async def delete_message(message_id: UUID, db: Session = Depends(get_db), user: User = Depends(current_user)) -> dict[str, str]:
+    message = db.get(Message, message_id)
+    if not message:
+        raise HTTPException(status_code=404, detail="Message not found")
+    ensure_chat_member(db, message.conversation_id, user.id)
+    db.delete(message)
+    db.commit()
+    return {"status": "deleted"}
+
+
+@router.delete("/history/{chat_id}")
+async def clear_history(chat_id: UUID, db: Session = Depends(get_db), user: User = Depends(current_user)) -> dict[str, str]:
+    ensure_chat_member(db, chat_id, user.id)
+    messages = db.scalars(select(Message).where(Message.conversation_id == chat_id)).all()
+    for message in messages:
+        db.delete(message)
+    db.commit()
+    return {"status": "cleared"}
