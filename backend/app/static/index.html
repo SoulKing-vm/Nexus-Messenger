@@ -1,0 +1,702 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Nexus Messenger</title>
+    <style>
+      :root {
+        color-scheme: light;
+        --ink: #121417;
+        --paper: #f8faf9;
+        --line: rgba(18, 20, 23, 0.12);
+        --muted: rgba(18, 20, 23, 0.58);
+        --lagoon: #157a8c;
+        --moss: #4d7c59;
+        --coral: #e65f5c;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        background: linear-gradient(135deg, #f8faf9 0%, #eef3ef 48%, #f7ebe9 100%);
+        color: var(--ink);
+        font-family: Arial, Helvetica, sans-serif;
+      }
+
+      button,
+      input,
+      textarea {
+        font: inherit;
+      }
+
+      button {
+        cursor: pointer;
+      }
+
+      .page {
+        min-height: 100vh;
+        padding: 18px;
+      }
+
+      .topbar,
+      .shell,
+      .panel,
+      .auth {
+        border: 1px solid var(--line);
+        background: rgba(255, 255, 255, 0.92);
+        box-shadow: 0 18px 45px rgba(18, 20, 23, 0.12);
+      }
+
+      .topbar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        max-width: 1240px;
+        margin: 0 auto 14px;
+        padding: 12px 14px;
+        border-radius: 8px;
+      }
+
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-weight: 800;
+      }
+
+      .mark,
+      .avatar {
+        display: grid;
+        place-items: center;
+        width: 40px;
+        height: 40px;
+        border-radius: 8px;
+        background: var(--ink);
+        color: white;
+        font-weight: 800;
+      }
+
+      .avatar {
+        flex: 0 0 auto;
+        background: rgba(230, 95, 92, 0.14);
+        color: var(--coral);
+      }
+
+      .shell {
+        display: grid;
+        grid-template-columns: 330px 1fr;
+        max-width: 1240px;
+        min-height: calc(100vh - 102px);
+        margin: 0 auto;
+        overflow: hidden;
+        border-radius: 8px;
+      }
+
+      aside {
+        border-right: 1px solid var(--line);
+        background: white;
+      }
+
+      .tabs {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        border-bottom: 1px solid var(--line);
+      }
+
+      .tabs button {
+        min-height: 52px;
+        border: 0;
+        background: transparent;
+        color: var(--muted);
+        font-weight: 700;
+      }
+
+      .tabs button.active {
+        background: var(--lagoon);
+        color: white;
+      }
+
+      .panel {
+        box-shadow: none;
+        border-width: 0 0 1px;
+        padding: 14px;
+      }
+
+      .auth {
+        display: grid;
+        gap: 12px;
+        max-width: 480px;
+        margin: 8vh auto;
+        padding: 22px;
+        border-radius: 8px;
+      }
+
+      h1,
+      h2,
+      h3,
+      p {
+        margin: 0;
+      }
+
+      h1 {
+        font-size: 18px;
+      }
+
+      h2 {
+        margin-bottom: 12px;
+        font-size: 18px;
+      }
+
+      .muted {
+        color: var(--muted);
+        font-size: 13px;
+      }
+
+      .grid {
+        display: grid;
+        gap: 10px;
+      }
+
+      .row {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .between {
+        justify-content: space-between;
+      }
+
+      input,
+      textarea {
+        width: 100%;
+        min-width: 0;
+        border: 1px solid var(--line);
+        border-radius: 6px;
+        padding: 10px 11px;
+        outline: none;
+      }
+
+      textarea {
+        resize: vertical;
+      }
+
+      input:focus,
+      textarea:focus {
+        border-color: var(--lagoon);
+        box-shadow: 0 0 0 4px rgba(21, 122, 140, 0.16);
+      }
+
+      .btn {
+        min-height: 40px;
+        border: 0;
+        border-radius: 6px;
+        background: var(--ink);
+        color: white;
+        padding: 0 13px;
+        font-weight: 800;
+      }
+
+      .btn.secondary {
+        border: 1px solid var(--line);
+        background: white;
+        color: var(--ink);
+      }
+
+      .btn.good {
+        background: var(--moss);
+      }
+
+      .btn.warn {
+        background: var(--coral);
+      }
+
+      .list {
+        display: grid;
+        gap: 8px;
+      }
+
+      .item {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        border: 1px solid var(--line);
+        border-radius: 7px;
+        padding: 10px;
+        background: white;
+      }
+
+      .item.selectable {
+        width: 100%;
+        text-align: left;
+      }
+
+      .item.active {
+        background: var(--ink);
+        color: white;
+      }
+
+      .main {
+        display: grid;
+        grid-template-rows: auto 1fr auto;
+        min-width: 0;
+        background: var(--paper);
+      }
+
+      .messages {
+        display: grid;
+        align-content: start;
+        gap: 10px;
+        min-height: 420px;
+        overflow: auto;
+        padding: 16px;
+      }
+
+      .bubble {
+        max-width: min(620px, 78%);
+        border-radius: 8px;
+        background: white;
+        padding: 10px 12px;
+        box-shadow: 0 8px 20px rgba(18, 20, 23, 0.08);
+      }
+
+      .bubble.mine {
+        justify-self: end;
+        background: var(--lagoon);
+        color: white;
+      }
+
+      .composer {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        gap: 8px;
+        border-top: 1px solid var(--line);
+        background: white;
+        padding: 12px;
+      }
+
+      .status {
+        min-height: 20px;
+        color: var(--coral);
+        font-size: 13px;
+      }
+
+      .ok {
+        color: var(--moss);
+      }
+
+      .hidden {
+        display: none;
+      }
+
+      @media (max-width: 760px) {
+        .page {
+          padding: 8px;
+        }
+
+        .shell {
+          grid-template-columns: 1fr;
+        }
+
+        aside {
+          border-right: 0;
+          border-bottom: 1px solid var(--line);
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="page">
+      <section id="auth" class="auth">
+        <div class="brand">
+          <div class="mark">N</div>
+          <div>
+            <h1>Nexus Messenger</h1>
+            <p class="muted">Local MVP test UI</p>
+          </div>
+        </div>
+
+        <div class="grid">
+          <input id="username" placeholder="username" value="alice_dev" />
+          <input id="displayName" placeholder="display name" value="Alice" />
+          <input id="password" placeholder="password" type="password" value="password123" />
+          <div class="row">
+            <button class="btn" onclick="register()">Register</button>
+            <button class="btn secondary" onclick="login()">Log in</button>
+          </div>
+          <p class="muted">Tip: create two users in two browsers or log out and register Bob.</p>
+          <p id="authStatus" class="status"></p>
+        </div>
+      </section>
+
+      <section id="app" class="hidden">
+        <header class="topbar">
+          <div class="brand">
+            <div class="mark">N</div>
+            <div>
+              <h1>Nexus Messenger</h1>
+              <p id="meLine" class="muted"></p>
+            </div>
+          </div>
+          <div class="row">
+            <a class="muted" href="/docs" target="_blank">API docs</a>
+            <button class="btn secondary" onclick="logout()">Log out</button>
+          </div>
+        </header>
+
+        <div class="shell">
+          <aside>
+            <nav class="tabs">
+              <button id="tabChats" class="active" onclick="setTab('chats')">Chats</button>
+              <button id="tabFriends" onclick="setTab('friends')">Friends</button>
+              <button id="tabDiscover" onclick="setTab('discover')">Discover</button>
+              <button id="tabRequests" onclick="setTab('requests')">Requests</button>
+            </nav>
+
+            <div id="paneChats" class="panel grid">
+              <h2>Chats</h2>
+              <div class="row">
+                <input id="chatUsername" placeholder="friend username" />
+                <button class="btn" onclick="createChat()">Create</button>
+              </div>
+              <div id="chats" class="list"></div>
+            </div>
+
+            <div id="paneFriends" class="panel grid hidden">
+              <h2>Friends</h2>
+              <div class="row">
+                <input id="search" placeholder="search username" />
+                <button class="btn" onclick="searchUsers()">Search</button>
+              </div>
+              <div id="searchResults" class="list"></div>
+              <div id="friends" class="list"></div>
+            </div>
+
+            <div id="paneDiscover" class="panel grid hidden">
+              <h2>Discovery</h2>
+              <button class="btn secondary" onclick="loadDiscovery()">Refresh random users</button>
+              <div id="discovery" class="list"></div>
+            </div>
+
+            <div id="paneRequests" class="panel grid hidden">
+              <h2>Friend Requests</h2>
+              <button class="btn secondary" onclick="loadRequests()">Refresh requests</button>
+              <h3>Incoming</h3>
+              <div id="incoming" class="list"></div>
+              <h3>Outgoing</h3>
+              <div id="outgoing" class="list"></div>
+            </div>
+          </aside>
+
+          <main class="main">
+            <div class="panel row between">
+              <div>
+                <h2 id="chatTitle">No chat selected</h2>
+                <p id="chatMeta" class="muted">Make friends, create a chat, then send a message.</p>
+              </div>
+              <button class="btn secondary" onclick="refreshAll()">Refresh</button>
+            </div>
+            <div id="messages" class="messages"></div>
+            <form class="composer" onsubmit="sendMessage(event)">
+              <input id="messageText" placeholder="Message" />
+              <button class="btn" type="submit">Send</button>
+            </form>
+          </main>
+        </div>
+      </section>
+    </div>
+
+    <script>
+      const state = {
+        token: localStorage.getItem("accessToken"),
+        refreshToken: localStorage.getItem("refreshToken"),
+        me: null,
+        chats: [],
+        friends: [],
+        selectedChatId: null,
+        ws: null,
+        pollTimer: null
+      };
+
+      const API_BASE = location.protocol.startsWith("http") ? location.origin : "http://127.0.0.1:8000";
+
+      function el(id) {
+        return document.getElementById(id);
+      }
+
+      function setStatus(id, message, ok = false) {
+        el(id).textContent = message || "";
+        el(id).className = ok ? "status ok" : "status";
+      }
+
+      async function api(path, options = {}) {
+        const response = await fetch(`${API_BASE}${path}`, {
+          ...options,
+          headers: {
+            "Content-Type": "application/json",
+            ...(state.token ? { Authorization: `Bearer ${state.token}` } : {}),
+            ...(options.headers || {})
+          }
+        });
+        if (!response.ok) {
+          const body = await response.json().catch(() => ({ detail: response.statusText }));
+          throw new Error(typeof body.detail === "string" ? body.detail : JSON.stringify(body.detail));
+        }
+        return response.json();
+      }
+
+      async function register() {
+        try {
+          await api("/api/auth/register", {
+            method: "POST",
+            body: JSON.stringify({
+              username: el("username").value,
+              display_name: el("displayName").value || el("username").value,
+              password: el("password").value
+            })
+          });
+          setStatus("authStatus", "Registered. Logging in...", true);
+          await login();
+        } catch (error) {
+          setStatus("authStatus", error.message);
+        }
+      }
+
+      async function login() {
+        try {
+          const tokens = await api("/api/auth/login", {
+            method: "POST",
+            body: JSON.stringify({ username: el("username").value, password: el("password").value })
+          });
+          state.token = tokens.access_token;
+          state.refreshToken = tokens.refresh_token;
+          localStorage.setItem("accessToken", state.token);
+          localStorage.setItem("refreshToken", state.refreshToken);
+          await startApp();
+        } catch (error) {
+          setStatus("authStatus", error.message);
+        }
+      }
+
+      function logout() {
+        localStorage.removeItem("accessToken");
+        localStorage.removeItem("refreshToken");
+        if (state.ws) state.ws.close();
+        if (state.pollTimer) clearInterval(state.pollTimer);
+        state.token = null;
+        state.me = null;
+        state.ws = null;
+        state.pollTimer = null;
+        el("auth").classList.remove("hidden");
+        el("app").classList.add("hidden");
+      }
+
+      async function startApp() {
+        el("auth").classList.add("hidden");
+        el("app").classList.remove("hidden");
+        connectSocket();
+        startPolling();
+        await refreshAll();
+      }
+
+      async function refreshAll() {
+        try {
+          state.me = await api("/api/users/me");
+          el("meLine").textContent = `Signed in as @${state.me.username}`;
+          await loadFriends();
+          await Promise.all([loadChats(), loadRequests()]);
+          if (state.selectedChatId) await loadMessages(state.selectedChatId);
+        } catch (error) {
+          alert(error.message);
+        }
+      }
+
+      function setTab(tab) {
+        ["Chats", "Friends", "Discover", "Requests"].forEach((name) => {
+          el(`tab${name}`).classList.toggle("active", name.toLowerCase() === tab);
+          el(`pane${name}`).classList.toggle("hidden", name.toLowerCase() !== tab);
+        });
+        if (tab === "discover") loadDiscovery();
+        if (tab === "requests") loadRequests();
+      }
+
+      async function loadFriends() {
+        const users = await api("/api/friends/list");
+        state.friends = users;
+        el("friends").innerHTML = users.length
+          ? users.map((user) => userItem(user, `<button class="btn good" onclick="dmFriend('${user.username}')">DM</button>`)).join("")
+          : `<p class="muted">No friends yet.</p>`;
+      }
+
+      async function searchUsers() {
+        const q = encodeURIComponent(el("search").value);
+        const users = await api(`/api/users/search?q=${q}`);
+        el("searchResults").innerHTML = users.length
+          ? users.map((user) => userItem(user, `<button class="btn good" onclick="requestFriend('${user.username}')">Add</button>`)).join("")
+          : `<p class="muted">No users found.</p>`;
+      }
+
+      async function loadDiscovery() {
+        const users = await api("/api/discovery/random");
+        el("discovery").innerHTML = users.length
+          ? users.map((user) => userItem(user, `<button class="btn good" onclick="requestFriend('${user.username}')">Add</button>`)).join("")
+          : `<p class="muted">No discoverable users yet.</p>`;
+      }
+
+      async function requestFriend(username) {
+        await api("/api/friends/request", { method: "POST", body: JSON.stringify({ username }) });
+        await loadRequests();
+        alert(`Friend request sent to ${username}`);
+      }
+
+      async function loadRequests() {
+        const data = await api("/api/friends/requests");
+        el("incoming").innerHTML = data.incoming.length
+          ? data.incoming.map((row) => userItem(row.user, `<button class="btn good" onclick="acceptFriend('${row.user.username}')">Accept</button><button class="btn warn" onclick="rejectFriend('${row.user.username}')">Reject</button>`)).join("")
+          : `<p class="muted">No incoming requests.</p>`;
+        el("outgoing").innerHTML = data.outgoing.length
+          ? data.outgoing.map((row) => userItem(row.user, `<button class="btn secondary" onclick="cancelFriend('${row.user.username}')">Cancel</button>`)).join("")
+          : `<p class="muted">No outgoing requests.</p>`;
+      }
+
+      async function acceptFriend(username) {
+        await api("/api/friends/accept", { method: "POST", body: JSON.stringify({ username }) });
+        await refreshAll();
+      }
+
+      async function rejectFriend(username) {
+        await api("/api/friends/reject", { method: "POST", body: JSON.stringify({ username }) });
+        await loadRequests();
+      }
+
+      async function cancelFriend(username) {
+        await api("/api/friends/cancel", { method: "POST", body: JSON.stringify({ username }) });
+        await loadRequests();
+      }
+
+      async function loadChats() {
+        state.chats = await api("/api/chats");
+        el("chats").innerHTML = state.chats.length
+          ? state.chats.map((chat) => {
+              const friend = friendForChat(chat);
+              const title = friend ? friend.display_name || friend.username : "Conversation";
+              const subtitle = friend ? `@${friend.username}` : `${chat.member_ids.length} members`;
+              return `<button class="item selectable ${chat.id === state.selectedChatId ? "active" : ""}" onclick="selectChat('${chat.id}')"><span>${escapeHtml(title)}</span><span class="muted">${escapeHtml(subtitle)}</span></button>`;
+            }).join("")
+          : `<p class="muted">No chats yet.</p>`;
+      }
+
+      async function createChat(usernameOverride = "") {
+        const username = usernameOverride || el("chatUsername").value;
+        if (!username) return;
+        const chat = await api("/api/chats/create", { method: "POST", body: JSON.stringify({ username }) });
+        el("chatUsername").value = "";
+        state.selectedChatId = chat.id;
+        await loadChats();
+        await selectChat(chat.id);
+      }
+
+      async function dmFriend(username) {
+        setTab("chats");
+        await createChat(username);
+      }
+
+      async function selectChat(chatId) {
+        state.selectedChatId = chatId;
+        const chat = state.chats.find((item) => item.id === chatId) || (await api(`/api/chats/${chatId}`));
+        const friend = friendForChat(chat);
+        el("chatTitle").textContent = friend ? friend.display_name || friend.username : "Conversation";
+        el("chatMeta").textContent = friend ? `@${friend.username}` : `${chat.member_ids.length} members`;
+        joinSelectedChat();
+        await loadChats();
+        await loadMessages(chatId);
+      }
+
+      async function loadMessages(chatId) {
+        const messages = await api(`/api/messages/${chatId}`);
+        el("messages").innerHTML = messages.length
+          ? messages.map((message) => `<div class="bubble ${message.sender_id === state.me.id ? "mine" : ""}"><p>${escapeHtml(message.content)}</p><p class="muted">${message.status}</p></div>`).join("")
+          : `<p class="muted">No messages yet.</p>`;
+        el("messages").scrollTop = el("messages").scrollHeight;
+      }
+
+      async function sendMessage(event) {
+        event.preventDefault();
+        const content = el("messageText").value.trim();
+        if (!state.selectedChatId || !content) return;
+        await api("/api/messages/send", {
+          method: "POST",
+          body: JSON.stringify({ chat_id: state.selectedChatId, content })
+        });
+        el("messageText").value = "";
+        await loadMessages(state.selectedChatId);
+      }
+
+      function friendForChat(chat) {
+        if (!chat || !state.me) return null;
+        const friendId = chat.member_ids.find((id) => id !== state.me.id);
+        return state.friends.find((friend) => friend.id === friendId) || null;
+      }
+
+      function connectSocket() {
+        if (!state.token || state.ws?.readyState === WebSocket.OPEN || state.ws?.readyState === WebSocket.CONNECTING) return;
+        const wsProtocol = API_BASE.startsWith("https") ? "wss" : "ws";
+        const wsHost = new URL(API_BASE).host;
+        state.ws = new WebSocket(`${wsProtocol}://${wsHost}/ws?token=${encodeURIComponent(state.token)}`);
+        state.ws.addEventListener("open", joinSelectedChat);
+        state.ws.addEventListener("message", async (event) => {
+          const data = JSON.parse(event.data);
+          if (data.event === "message_sent" && data.chat_id === state.selectedChatId) {
+            await loadMessages(state.selectedChatId);
+          }
+          if (data.event === "message_sent") {
+            await loadChats();
+          }
+        });
+        state.ws.addEventListener("close", () => {
+          if (state.token) setTimeout(connectSocket, 1200);
+        });
+      }
+
+      function joinSelectedChat() {
+        if (!state.selectedChatId || state.ws?.readyState !== WebSocket.OPEN) return;
+        state.ws.send(JSON.stringify({ event: "join_chat", chat_id: state.selectedChatId }));
+      }
+
+      function startPolling() {
+        if (state.pollTimer) clearInterval(state.pollTimer);
+        state.pollTimer = setInterval(async () => {
+          if (!state.token) return;
+          try {
+            await loadChats();
+            if (state.selectedChatId) await loadMessages(state.selectedChatId);
+          } catch (error) {
+            console.warn(error);
+          }
+        }, 2500);
+      }
+
+      function userItem(user, actions = "") {
+        return `<div class="item"><div class="row"><div class="avatar">${escapeHtml((user.display_name || user.username).slice(0, 2).toUpperCase())}</div><div><strong>${escapeHtml(user.display_name)}</strong><p class="muted">@${escapeHtml(user.username)}</p></div></div><div class="row">${actions}</div></div>`;
+      }
+
+      function escapeHtml(value) {
+        return String(value).replace(/[&<>"']/g, (char) => ({
+          "&": "&amp;",
+          "<": "&lt;",
+          ">": "&gt;",
+          '"': "&quot;",
+          "'": "&#039;"
+        }[char]));
+      }
+
+      if (state.token) startApp();
+    </script>
+  </body>
+</html>
