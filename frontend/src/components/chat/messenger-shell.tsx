@@ -399,7 +399,7 @@ function ConversationPanel(props: {
   const subtitle = friend ? `@${friend.username}` : (props.chat ? `${props.chat.member_ids.length} members` : "Select a chat to begin messaging");
 
   const onEmojiClick = (emojiData: { emoji: string }) => {
-    props.setDraft(prev => prev + emojiData.emoji);
+    props.setDraft(props.draft + emojiData.emoji);
   };
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
