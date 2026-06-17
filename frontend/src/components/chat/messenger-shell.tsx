@@ -87,7 +87,7 @@ export function MessengerShell() {
   }
 
   return (
-    <main className="mx-auto grid min-h-screen max-w-7xl grid-rows-[auto_1fr] px-0 md:px-6 py-0 md:py-6 bg-paper dark:bg-teleDarkBg text-ink dark:text-gray-100 transition-colors">
+    <main className="mx-auto flex min-h-screen max-w-7xl flex-col px-0 md:px-6 py-0 md:py-6 bg-paper dark:bg-teleDarkBg text-ink dark:text-gray-100 transition-colors">
       <header className="hidden md:flex mb-3 items-center justify-between rounded-lg border border-black/10 dark:border-white/10 bg-white/80 dark:bg-teleDarkPaper/80 px-4 py-3 shadow-soft backdrop-blur-md">
         <div className="flex items-center gap-3">
           <span className="grid size-10 place-items-center rounded-md bg-teleBlue text-white shadow-tele3d">
@@ -103,8 +103,8 @@ export function MessengerShell() {
         </button>
       </header>
 
-      <section className="grid min-h-[100dvh] md:min-h-[calc(100vh-104px)] overflow-hidden rounded-none md:rounded-lg border-0 md:border border-black/10 dark:border-white/10 bg-white dark:bg-teleDarkPaper shadow-none md:shadow-tele3d md:grid-cols-[320px_1fr]">
-        <aside className={`grid grid-rows-[auto_1fr] border-b border-black/10 dark:border-white/10 md:border-b-0 md:border-r ${mobileView === 'chat' ? 'hidden md:grid' : 'grid'}`}>
+      <section className="flex flex-1 overflow-hidden md:gap-6">
+        <aside className={`flex-col md:w-[340px] shrink-0 border-b border-black/10 dark:border-white/10 md:border-b-0 md:border md:rounded-xl md:shadow-tele3d bg-white dark:bg-teleDarkPaper overflow-hidden ${mobileView === 'chat' ? 'hidden md:flex' : 'flex'}`}>
           <nav className="grid grid-cols-4 border-b border-black/10 dark:border-white/10 bg-white dark:bg-teleDarkBg z-20">
             <NavButton active={tab === "chats"} icon={<MessageCircle size={19} />} label="Chats" onClick={() => setTab("chats")} />
             <NavButton active={tab === "friends"} icon={<UsersRound size={19} />} label="Friends" onClick={() => setTab("friends")} />
@@ -126,7 +126,7 @@ export function MessengerShell() {
           </div>
         </aside>
 
-        <div className={`h-full relative ${mobileView === 'sidebar' ? 'hidden md:block' : 'block'}`}>
+        <div className={`flex-1 relative md:border border-black/10 dark:border-white/10 md:rounded-xl md:shadow-tele3d bg-white dark:bg-teleDarkPaper overflow-hidden ${mobileView === 'sidebar' ? 'hidden md:block' : 'block'}`}>
           <ConversationPanel
             chat={selectedChat}
             chats={chats.data ?? []}
@@ -458,12 +458,17 @@ function ConversationPanel(props: {
     if (!props.token) return;
     if (!confirm("Are you sure you want to delete these messages for everyone?")) return;
     
-    for (const msgId of Array.from(selectedMessages)) {
-      await api.deleteMessage(props.token, msgId);
+    try {
+      for (const msgId of Array.from(selectedMessages)) {
+        await api.deleteMessage(props.token, msgId);
+      }
+    } catch (e) {
+      alert("Failed to delete messages. Render is likely still deploying the new backend update. Please wait 2 minutes and try again!");
+    } finally {
+      setSelectMode(false);
+      setSelectedMessages(new Set());
+      props.refetchMessages();
     }
-    setSelectMode(false);
-    setSelectedMessages(new Set());
-    props.refetchMessages();
   };
 
   const handleForwardSelected = async (targetChatId: string) => {
@@ -485,9 +490,14 @@ function ConversationPanel(props: {
     if (!props.token || !props.chat) return;
     if (!confirm("Are you sure you want to completely clear the history of this chat for everyone?")) return;
     
-    await api.clearHistory(props.token, props.chat.id);
-    setShowMenu(false);
-    props.refetchMessages();
+    try {
+      await api.clearHistory(props.token, props.chat.id);
+    } catch (e) {
+      alert("Failed to clear history. Render is likely still deploying the new backend update. Please wait 2 minutes and try again!");
+    } finally {
+      setShowMenu(false);
+      props.refetchMessages();
+    }
   };
 
   return (
