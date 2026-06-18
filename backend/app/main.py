@@ -9,6 +9,23 @@ from app.core.config import settings
 from app.core.rate_limit import InMemoryRateLimitMiddleware
 from app.db.session import Base, engine
 from app.websocket.events import websocket_router
+from sqlalchemy import text
+import logging
+
+try:
+    with engine.begin() as conn:
+        conn.execute(text("ALTER TABLE users ADD COLUMN email VARCHAR(255)"))
+        conn.execute(text("ALTER TABLE users ADD COLUMN google_id VARCHAR(255)"))
+        logging.info("Successfully added email and google_id columns to users table")
+except Exception as e:
+    logging.info(f"Migration columns likely already exist (or error): {e}")
+
+try:
+    with engine.begin() as conn:
+        conn.execute(text("ALTER TABLE users ADD CONSTRAINT uq_users_email UNIQUE (email)"))
+        conn.execute(text("ALTER TABLE users ADD CONSTRAINT uq_users_google_id UNIQUE (google_id)"))
+except Exception:
+    pass
 
 Base.metadata.create_all(bind=engine)
 
