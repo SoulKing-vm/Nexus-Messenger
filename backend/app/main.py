@@ -27,6 +27,14 @@ try:
 except Exception:
     pass
 
+try:
+    with engine.begin() as conn:
+        # PostgreSQL syntax to make column nullable
+        conn.execute(text("ALTER TABLE users ALTER COLUMN password_hash DROP NOT NULL"))
+        logging.info("Successfully dropped NOT NULL constraint on password_hash")
+except Exception as e:
+    logging.info(f"Could not drop NOT NULL on password_hash (might be sqlite or already dropped): {e}")
+
 Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title="Nexus Messenger API", version="1.0.0")
