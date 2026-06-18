@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Lock, MessageCircle, UserPlus } from "lucide-react";
 import { api } from "@/lib/api";
 import { useAuthStore } from "@/store/auth";
+import { GoogleLogin } from "@react-oauth/google";
 
 type AuthFormProps = {
   mode: "login" | "register";
@@ -121,7 +122,37 @@ export function AuthForm({ mode }: AuthFormProps) {
             {loading ? "Please wait" : mode === "login" ? "Log in" : "Register"}
           </button>
 
-          <a className="text-sm font-medium text-lagoon" href={mode === "login" ? "/register" : "/login"}>
+          <div className="flex items-center gap-3">
+            <div className="h-[1px] flex-1 bg-black/10 dark:bg-white/10" />
+            <span className="text-xs uppercase text-black/40 font-bold">Or continue with</span>
+            <div className="h-[1px] flex-1 bg-black/10 dark:bg-white/10" />
+          </div>
+
+          <div className="flex justify-center">
+            <GoogleLogin
+              onSuccess={async (credentialResponse) => {
+                try {
+                  setLoading(true);
+                  setError(null);
+                  if (credentialResponse.credential) {
+                    const tokens = await api.googleLogin(credentialResponse.credential);
+                    setTokens(tokens.access_token, tokens.refresh_token);
+                    router.push("/chats");
+                  }
+                } catch (err) {
+                  setError(err instanceof Error ? err.message : "Google login failed");
+                } finally {
+                  setLoading(false);
+                }
+              }}
+              onError={() => {
+                setError("Google Login Failed");
+              }}
+              useOneTap
+            />
+          </div>
+
+          <a className="text-sm font-medium text-lagoon text-center" href={mode === "login" ? "/register" : "/login"}>
             {mode === "login" ? "Need an account? Register" : "Already have an account? Log in"}
           </a>
         </form>

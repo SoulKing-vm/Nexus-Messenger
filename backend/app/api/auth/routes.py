@@ -8,7 +8,10 @@ from app.core.jwt import create_access_token, create_refresh_token, decode_token
 from app.core.security import hash_password, validate_username, verify_password
 from app.db.models import User
 from app.db.session import get_db
-from app.schemas.models import LoginRequest, RegisterRequest, TokenPair, UserPublic
+from app.schemas.models import LoginRequest, RegisterRequest, TokenPair, UserPublic, GoogleLoginRequest
+from google.oauth2 import id_token
+from google.auth.transport import requests
+from app.core.config import settings
 
 router = APIRouter()
 
@@ -37,10 +40,64 @@ def register(payload: RegisterRequest, db: Session = Depends(get_db)) -> User:
 @router.post("/login", response_model=TokenPair)
 def login(payload: LoginRequest, db: Session = Depends(get_db)) -> TokenPair:
     user = db.scalar(select(User).where(User.username == payload.username))
-    if not user or not verify_password(payload.password, user.password_hash):
+    if not user or not user.password_hash or not verify_password(payload.password, user.password_hash):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid username or password")
 
     return TokenPair(access_token=create_access_token(user.id), refresh_token=create_refresh_token(user.id))
+
+
+@router.post("/google", response_model=TokenPair)
+def google_login(payload: GoogleLoginRequest, db: Session = Depends(get_db)) -> TokenPair:
+    try:
+        idinfo = id_token.verify_oauth2_token(payload.credential, requests.Request(), settings.google_client_id)
+        email = idinfo.get("email")
+        google_id = idinfo.get("sub")
+        display_name = idinfo.get("name")
+        picture = idinfo.get("picture")
+        
+        if not email or not google_id:
+            raise HTTPException(status_code=400, detail="Invalid Google token payload")
+            
+        user = db.scalar(select(User).where(User.email == email))
+        
+        if not user:
+            # Create a new user automatically
+            # Derive a base username from email
+            base_username = email.split("@")[0].lower()
+            base_username = ''.join(c for c in base_username if c.isalnum() or c in '_-')[:20]
+            if not base_username or len(base_username) < 3:
+                base_username = f"user_{google_id[:8]}"
+                
+            username = base_username
+            counter = 1
+            while db.scalar(select(User).where(User.username == username)):
+                username = f"{base_username}{counter}"
+                counter += 1
+                
+            user = User(
+                username=username,
+                email=email,
+                google_id=google_id,
+                display_name=display_name or username,
+                profile_picture=picture,
+                password_hash=None,
+                discoverable=True
+            )
+            db.add(user)
+            db.commit()
+            db.refresh(user)
+        else:
+            # Update existing user if needed
+            if not user.google_id:
+                user.google_id = google_id
+            if not user.profile_picture and picture:
+                user.profile_picture = picture
+            db.commit()
+            
+        return TokenPair(access_token=create_access_token(user.id), refresh_token=create_refresh_token(user.id))
+        
+    except ValueError:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid Google token")
 
 
 @router.post("/refresh", response_model=TokenPair)

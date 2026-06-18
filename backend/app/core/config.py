@@ -23,6 +23,7 @@ class Settings(BaseSettings):
     database_url: str = "sqlite:///./nexus.db"
     redis_url: str = "redis://localhost:6379/0"
     frontend_origin: str = "http://localhost:3000"
+    google_client_id: str = "62445506289-crarrdg495scdnf5bvcgdccqglm2fnoi.apps.googleusercontent.com"
 
     @computed_field
     @property

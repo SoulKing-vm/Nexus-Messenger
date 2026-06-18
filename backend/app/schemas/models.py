@@ -21,6 +21,10 @@ class LoginRequest(BaseModel):
     password: str
 
 
+class GoogleLoginRequest(BaseModel):
+    credential: str
+
+
 class UserPublic(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 

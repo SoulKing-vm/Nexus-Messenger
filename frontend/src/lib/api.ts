@@ -31,6 +31,11 @@ export const api = {
       method: "POST",
       body: JSON.stringify({ username, password })
     }),
+  googleLogin: (credential: string) =>
+    request<TokenPair>("/api/auth/google", {
+      method: "POST",
+      body: JSON.stringify({ credential })
+    }),
   me: (token: string) => request<User>("/api/users/me", {}, token),
   chats: (token: string) => request<Chat[]>("/api/chats", {}, token),
   messages: (token: string, chatId: string) => request<Message[]>(`/api/messages/${chatId}`, {}, token),

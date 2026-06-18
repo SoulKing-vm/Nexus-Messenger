@@ -3,7 +3,7 @@
 
 import { FormEvent, useEffect, useMemo, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { Compass, LogOut, MessageCircle, Search, Send, Settings, UserRoundCheck, UsersRound, Smile, Paperclip, Check, X, Moon, Sun, Monitor, MessageSquare, ArrowLeft, MoreVertical, Trash2, Forward as ForwardIcon } from "lucide-react";
+import { Compass, LogOut, MessageCircle, Search, Send, Settings, UserRoundCheck, UsersRound, Smile, Paperclip, Check, X, Moon, Sun, Monitor, MessageSquare, ArrowLeft, MoreVertical, Trash2, Forward as ForwardIcon, Download } from "lucide-react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import { useAuthStore } from "@/store/auth";
@@ -376,9 +376,23 @@ function renderMessageContent(content: string) {
       const dataUrl = content.substring(splitIndex + 1);
       
       if (dataUrl.startsWith("data:image")) {
-        return <img src={dataUrl} alt="attachment" className="max-w-full rounded-md mt-1 mb-1 max-h-64 object-contain shadow-sm" />;
+        return (
+          <div className="relative group/media inline-block max-w-full">
+            <img src={dataUrl} alt="attachment" className="max-w-full rounded-md mt-1 mb-1 max-h-64 object-contain shadow-sm" />
+            <a href={dataUrl} download={`image.${metadata}`} className="absolute top-2 right-2 opacity-0 group-hover/media:opacity-100 transition-opacity bg-black/60 hover:bg-black/80 text-white p-2 rounded-full backdrop-blur-sm" title="Download Image">
+              <Download size={16} />
+            </a>
+          </div>
+        );
       } else if (dataUrl.startsWith("data:video")) {
-        return <video src={dataUrl} controls className="max-w-full rounded-md mt-1 mb-1 max-h-64 shadow-sm" />;
+        return (
+          <div className="relative group/media inline-block max-w-full">
+            <video src={dataUrl} controls className="max-w-full rounded-md mt-1 mb-1 max-h-64 shadow-sm" />
+            <a href={dataUrl} download={`video.${metadata}`} className="absolute top-2 right-2 opacity-0 group-hover/media:opacity-100 transition-opacity bg-black/60 hover:bg-black/80 text-white p-2 rounded-full backdrop-blur-sm" title="Download Video">
+              <Download size={16} />
+            </a>
+          </div>
+        );
       } else {
         return (
           <a href={dataUrl} download={`attachment.${metadata}`} className="flex items-center gap-2 bg-black/10 dark:bg-white/10 p-3 rounded-lg hover:bg-black/20 dark:hover:bg-white/20 transition-colors font-semibold mt-1">
